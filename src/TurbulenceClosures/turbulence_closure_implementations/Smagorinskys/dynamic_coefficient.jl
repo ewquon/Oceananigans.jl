@@ -265,7 +265,7 @@ end
 
     @inbounds begin
         Σsq = ΣᵢⱼΣᵢⱼᶜᶜᶜ(i, j, k, grid, u, v, w)
-        Σ[i, j, k] = sqrt(Σsq)
+        Σ[i, j, k] = sqrt(2Σsq)
     end
 end
 
@@ -274,7 +274,7 @@ end
 
     @inbounds begin
         Σ̄sq = Σ̄ᵢⱼΣ̄ᵢⱼᶜᶜᶜ(i, j, k, grid, u, v, w)
-        Σ̄[i, j, k] = sqrt(Σ̄sq)
+        Σ̄[i, j, k] = sqrt(2Σ̄sq)
     end
 end
 
@@ -326,8 +326,8 @@ function compute_coefficient_fields!(closure_fields, closure::DirectionallyAvera
 
         # Fill Σ, Σ̄ halos because the M tensor computation uses `filter`
         # which reads from neighboring cells (including halo cells).
-        fill_halo_regions!(Σ; only_local_halos=true)
-        fill_halo_regions!(Σ̄; only_local_halos=true)
+        fill_halo_regions!(Σ)
+        fill_halo_regions!(Σ̄)
 
         LM = closure_fields.LM
         MM = closure_fields.MM
@@ -428,8 +428,8 @@ function TurbulenceClosures.initialize_closure_fields!(closure_fields, closure::
 
     # Fill Σ, Σ̄ halos because the M tensor computation uses `filter`
     # which reads from neighboring cells (including halo cells).
-    fill_halo_regions!(Σ; only_local_halos=true)
-    fill_halo_regions!(Σ̄; only_local_halos=true)
+    fill_halo_regions!(Σ)
+    fill_halo_regions!(Σ̄)
 
     𝒥ᴸᴹ  = closure_fields.𝒥ᴸᴹ
     𝒥ᴹᴹ  = closure_fields.𝒥ᴹᴹ
@@ -467,8 +467,8 @@ function TurbulenceClosures.step_closure_prognostics!(closure_fields, closure::L
 
         # Fill Σ, Σ̄ halos because the M tensor computation uses `filter`
         # which reads from neighboring cells (including halo cells).
-        fill_halo_regions!(Σ; only_local_halos=true)
-        fill_halo_regions!(Σ̄; only_local_halos=true)
+        fill_halo_regions!(Σ)
+        fill_halo_regions!(Σ̄)
 
         parent(closure_fields.𝒥ᴸᴹ⁻) .= parent(closure_fields.𝒥ᴸᴹ)
         parent(closure_fields.𝒥ᴹᴹ⁻) .= parent(closure_fields.𝒥ᴹᴹ)
