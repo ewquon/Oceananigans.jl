@@ -357,6 +357,10 @@ Architectures.cpu_architecture(arch::Distributed{A, S}) where {A, S} =
 # Fields of architectures sharing `field_count` (e.g. `twin_grid`s) get distinct tags, as long as all ranks create them in the same order
 next_field_tag!(arch::Distributed) = Threads.atomic_add!(arch.field_count, UInt64(1))
 
+# Realign after creating fields that only some ranks hold, and that never exchange halos, so that later fields match.
+align_field_tags!(arch) = nothing
+align_field_tags!(arch::Distributed) = (arch.field_count[] = MPI.Allreduce(arch.field_count[], max, arch.communicator); nothing)
+
 # Fail loudly instead of hanging in the first halo exchange: called where all ranks meet, e.g. `initialize!(::Simulation)`
 check_field_tags(arch) = nothing
 check_field_tags(arch::Distributed) = check_field_tags(arch.communicator, arch.field_count[])

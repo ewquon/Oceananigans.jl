@@ -162,7 +162,8 @@ function all_reduce_along!(op, data, arch, reduced_dims)
         index = ntuple(d -> d ∈ unreduced_partition_dims ? arch.local_index[d] : 1, 3)
         color = LinearIndices(R)[index...]
         communicator = MPI.Comm_split(arch.communicator, color, arch.local_rank)
-        MPI.Allreduce!(data, op, communicator)
+        # `Comm_split` returns a plain MPI communicator, even under NCCL, and it may not be GPU-aware.
+        copyto!(data, MPI.Allreduce!(Array(data), op, communicator))
         MPI.free(communicator)
     end
 

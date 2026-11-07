@@ -4,7 +4,7 @@ using KernelAbstractions: @index, @kernel
 using Oceananigans.AbstractOperations: Ax, Ay, Az, Integral, grid_metric_operation
 using Oceananigans.Architectures: architecture
 using Oceananigans.BoundaryConditions: BoundaryCondition, NormalFlow, get_target_transport, has_target_transport
-using Oceananigans.DistributedComputations: Distributed, all_reduce
+using Oceananigans.DistributedComputations: Distributed, align_field_tags!, all_reduce
 using Oceananigans.Fields: Field, compute!
 using Oceananigans.Grids: Center, Face, immersed_peripheral_node
 using Oceananigans.Utils: KernelParameters, launch!
@@ -202,6 +202,9 @@ function initialize_boundary_transport(velocities::NamedTuple)
             needs_pool_correction(w_bcs.top) && (total_area_pool_boundaries += boundary_transports.top_area)
         end
     end
+
+    # A transport field exists only on the ranks that touch its boundary.
+    align_field_tags!(arch)
 
     total_area_scheme_boundaries = all_reduce(+, total_area_scheme_boundaries, arch)
     total_area_pool_boundaries = all_reduce(+, total_area_pool_boundaries, arch)
